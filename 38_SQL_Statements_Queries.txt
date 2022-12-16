@@ -1,0 +1,129 @@
+Queries Senario For Insurance Agency Management System 
+
+
+
+1>>>>List all the clients who have taken Bike Vehicle insurance.
+ 
+SELECT c1.client_id, c1.name, cp.sub_policies_id_ref FROM client AS c1 JOIN client_policies AS cp ON c1.client_id = cp.client_id_ref
+JOIN sub_policies AS s1 ON s1.sub_policies_id = cp.sub_policies_id_ref
+WHERE s1.sub_policies_name = 'Bike';
+
+
+2>>>>List all clients who have taken the policy code 1001 and have validity greater than 1 year.
+
+SELECT c1.client_id, c1.name, p1.code, sp.policy_period FROM client AS c1 JOIN client_policies AS cp 
+ON c1.client_id = cp.client_id_ref JOIN sub_policies AS sp 
+ON cp.sub_policies_id_ref = sp.sub_policies_id JOIN policies AS p1 
+ON sp.policy_type_code_ref = p1.code
+WHERE  p1.code = 1001 AND sp.policy_period > 1;
+
+
+3>>>>List all clients who have taken policy from agent’s ID 5103.
+
+SELECT c1.client_id, c1.name, a1.agent_id, a1.name, a1.email FROM client AS c1 JOIN client_policies AS cp
+ON c1.client_id = cp.client_id_ref JOIN agents AS a1
+ON cp.agent_id_ref = a1.agent_id
+WHERE a1.agent_id = 5103;
+
+
+4>>>>List out all the client ID with phone number who has taken Health policy from agent ID 5101.
+
+SELECT c1.client_id, c1.name, cc.mobile_no, p1.name FROM client AS c1 JOIN client_contact AS cc 
+ON c1.client_id = cc.client_id_ref JOIN client_policies AS cp
+ON cc.client_id_ref = cp.client_id_ref JOIN sub_policies AS sp
+ON cp.sub_policies_id_ref = sp.sub_policies_id JOIN policies p1 
+ON sp.policy_type_code_ref = p1.code
+WHERE p1.name = 'Health Insurance';
+
+
+5>>>>List all clients (client’s id, Name, Email) who have taken more than one policy.
+
+select client_id,name,email from client as c 
+except
+(select client_id,name,email from client as c join client_policies as cp on c.client_id=cp.client_id_ref 
+group by client_id,name,email having count(client_id)<2) order by client_id asc;
+
+
+6>>>>Give all the payment details of client ID 1008.
+
+SELECT pd.reciept_id, pd.date_of_payment, pd.client_id_ref, cp.sub_policies_id_ref FROM policy_payment_details AS pd JOIN client_policies AS cp
+ON pd.client_policy_id_ref = cp.client_policy_id 
+WHERE pd.client_id_ref = 1008;
+
+
+7>>>>Update claim settlement ratio to 98.9% of sub policy ID 9002.
+
+UPDATE sub_policies SET claim_settlement_ratio = 98.9
+WHERE sub_policies_id = 9002
+RETURNING *;
+
+
+8>>>>List all the sub-policies (id, policy name, description) of policy name=’Property Insurance’.
+
+SELECT * FROM sub_policies AS sp JOIN policies AS p1
+ON sp.policy_type_code_ref = p1.code
+WHERE p1.name = 'Property Insurance';
+
+
+9>>>>Retrieve date of registration and date of expiry of the policy of a client who has taken Health policy from agent ID 5101.
+
+select reg_date,exp_date,agent_id_ref,client_id_ref from client_policies as cp join sub_policies as sp
+on cp.sub_policies_id_ref=sp.sub_policies_id join policies as p 
+on sp.policy_type_code_ref=p.code
+where p.name='Health Insurance' and cp.agent_id_ref=5101;
+
+
+10>>>>Most valuable agent who sold the most number of policies.
+
+SELECT a.agent_id,count(client_policy_id) AS NO_OF_SALE from agents AS a INNER JOIN client_policies AS cp 
+ON a.agent_id = cp.agent_id_ref 
+GROUP BY a.agent_id ORDER BY NO_OF_SALE DESC LIMIT 1;
+
+
+11>>>>List all the policy names with information of the client named ‘Rahul’.
+
+select client_id,name,email,reg_date,exp_date,sub_policies_id_ref,agent_id_ref from client as c join client_policies as cp 
+on c.client_id=cp.client_id_ref
+where name='Rahul';
+
+
+12>>>>List all the clients (id, name) whose policies will expire in 2024 and agent’s ID 5104.
+
+SELECT c.client_id,c.name,cp.exp_date,a.agent_id FROM client AS c JOIN client_policies AS cp
+ON c.client_id = cp.client_id_ref JOIN agents AS a
+ON a.agent_id = cp.agent_id_ref
+WHERE cp.exp_date BETWEEN '2024-01-01' AND '2024-12-31';
+
+
+
+13>>>>List out all the policies sold in the year 2019.
+
+select code,name,cp.reg_date,cp.exp_date from policies as p join sub_policies as sp on p.code=sp.policy_type_code_ref 
+join client_policies as cp on sp.sub_policies_id=cp.sub_policies_id_ref
+join policy_payment_details as ppd on ppd.client_policy_id_ref=cp.client_policy_id
+where date_of_payment between '2019-01-01' and '2019-12-31' ;
+
+
+
+14>>>>Update the city and state of client name ‘Sharma’ to city Gandhinagar and state Gujarat.
+
+UPDATE client SET 
+city = 'Gandhinagar', state = 'Gujarat'
+WHERE name ='Sharma'
+RETURNING *;
+
+
+15>>>>List out all the agent ID and client ID who has taken policy between 2020-2021.
+
+select client_id,agent_id from client as c join client_policies as cp on c.client_id=cp.client_id_ref
+join agents as a on a.agent_id=cp.agent_id_ref
+where reg_date between '2020-01-01' and '2021-12-31';
+
+
+
+16>>>>List out all clients whose medical expenses are above 2 lakhs.
+
+SELECT c.client_id,c.name,hcp.medical_expences FROM client AS c JOIN health_claim_policy AS hcp
+ON c.client_id = hcp.client_id_ref
+WHERE hcp.medical_expences >= 200000;
+
