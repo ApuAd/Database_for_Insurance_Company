@@ -1,0 +1,199 @@
+DDL Script For Insurance Agency Management System
+
+CREATE TABLE CLIENT (
+    Client_id INTEGER,
+    Name VARCHAR(30),
+    Email VARCHAR(30),
+    DOB DATE,
+    City VARCHAR(20),
+    State VARCHAR(20),
+    Pincode INTEGER,
+    Bank_acc_no DECIMAL(16),
+    PRIMARY KEY(Client_id)
+    );
+
+
+CREATE TABLE CLIENT_CONTACT (
+    Client_id_ref INTEGER,
+    Mobile_no BIGINT,
+    FOREIGN KEY(Client_id_ref) REFERENCES CLIENT(Client_id)
+		ON DELETE SET NULL ON UPDATE CASCADE,
+    PRIMARY KEY(Client_id_ref,Mobile_no)
+    );
+
+
+CREATE TABLE Agents (
+    Agent_id SMALLINT PRIMARY KEY,
+    Name VARCHAR(30),
+    Email VARCHAR(30)
+    );
+
+
+CREATE TABLE AGENT_CONTACT(
+  Mobile_no BIGINT,
+  Agent_id_ref SMALLINT,
+  FOREIGN KEY (Agent_id_ref) REFERENCES Agents(Agent_id)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+  PRIMARY KEY (Mobile_no,Agent_id_ref)
+  );
+
+
+CREATE TABLE POLICIES (
+    Code INTEGER,
+    Name VARCHAR(20),
+    PRIMARY KEY (Code)
+    );
+
+
+CREATE TABLE SUB_POLICIES (
+    Sub_policies_id SMALLINT,
+    Sub_policies_name VARCHAR(30),
+    Policy_type_code_ref SMALLINT,
+    Description VARCHAR(50),
+    Premium FLOAT,
+    Policy_period INTEGER,
+    Claim_settlement_ratio FLOAT,
+    PRIMARY KEY (Sub_policies_id)
+    FOREIGN KEY (Policy_type_code_ref) REFERENCES POLICIES (Code)
+	ON DELETE SET NULL ON UPDATE CASCADE
+  );
+
+
+CREATE TABLE Client_policies (
+    Client_policy_id SMALLINT PRIMARY KEY,
+    Reg_date DATE,
+    Exp_date DATE,
+    Agent_id_ref SMALLINT,
+    Sub_policies_id_ref SMALLINT,
+    Client_id_ref SMALLINT,
+    FOREIGN KEY (Agent_id_ref) REFERENCES Agents (Agent_id)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (Client_id_ref) REFERENCES CLIENT (Client_id)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (Sub_policies_id_ref) REFERENCES SUB_POLICIES (Sub_policies_id)
+	ON DELETE CASCADE ON UPDATE CASCADE
+    );
+
+
+CREATE TABLE Policy_payment_details (
+    Reciept_id NUMERIC(10,0) PRIMARY KEY,
+    Date_of_payment DATE,
+    Client_policy_id_ref SMALLINT,
+    Client_id_ref SMALLINT,
+    FOREIGN KEY (Client_id_ref) REFERENCES CLIENT (Client_id)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (Client_policy_id_ref) REFERENCES SUB_POLICIES (Sub_policies_id) 
+	ON DELETE SET NULL ON UPDATE CASCADE
+    );
+	
+	
+CREATE TABLE SALES(
+    Client_id_ref SMALLINT,
+    Agent_id_ref SMALLINT,
+    Policies_code_ref INTEGER,
+    FOREIGN KEY (Client_id_ref) REFERENCES CLIENT (Client_id)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (Agent_id_ref) REFERENCES AGENTS (Agent_id)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (Policies_code_ref) REFERENCES POLICIES (Code)
+	ON DELETE SET NULL ON UPDATE CASCADE
+    );
+
+
+CREATE TABLE Vehicle_Info (
+    Vinfo_ID SMALLINT PRIMARY KEY,
+    Vehicle_no VARCHAR(10),
+    Model_name VARCHAR(50),
+    Licence_no VARCHAR(15),
+    RC_no VARCHAR(10),
+    Reg_year INT,
+    Sub_policies_id_ref SMALLINT,
+    Client_id_ref SMALLINT,
+    FOREIGN KEY (Sub_policies_id_ref) REFERENCES SUB_POLICIES (Sub_policies_id),
+	ON DELETE CASCADE ON UPDATE CASCADE,    
+    FOREIGN KEY (Client_id_ref) REFERENCES CLIENT(Client_id)
+	ON DELETE CASCADE ON UPDATE CASCADE,    
+);
+
+
+CREATE TABLE Vehicle_Claim_Policies (
+    Vclaim_id SMALLINT PRIMARY KEY,
+    Repaire_expense DECIMAL(9,2),
+    Date_of_claim DATE,
+    FIR VARCHAR(10),
+    VInfo_ID_ref SMALLINT,
+    Client_id_ref SMALLINT,
+    Sub_policies_id_ref SMALLINT,
+    FOREIGN KEY(VInfo_ID_ref) REFERENCES Vehicle_Info(Vinfo_ID)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (Client_id_ref) REFERENCES CLIENT(Client_id)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+FOREIGN KEY (Sub_policies_id_ref) REFERENCES SUB_POLICIES (Sub_policies_id),
+	ON DELETE CASCADE ON UPDATE CASCADE  
+    );
+
+
+CREATE TABLE Health_info (
+    Hinfo_id SMALLINT PRIMARY KEY,
+    Disease VARCHAR(100),
+    Blood_group VARCHAR(3),
+    Sub_policies_id_ref SMALLINT,
+    Client_id_ref SMALLINT,
+    FOREIGN KEY (Client_id_ref) REFERENCES CLIENT(Client_id)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (Sub_policies_id_ref) REFERENCES SUB_POLICIES (Sub_policies_id)
+	ON DELETE CASCADE ON UPDATE CASCADE  
+);
+
+
+CREATE TABLE Health_claim_policy (
+    Hclaim_id SMALLINT PRIMARY KEY,
+    Medical_reports VARCHAR(10),
+    Medical_expences DECIMAL(9,2),
+    Date_of_claim DATE,
+    Client_id_ref SMALLINT,
+    Sub_policies_id_ref SMALLINT,
+    Hinfo_id_ref SMALLINT,
+    FOREIGN KEY (Client_id_ref) REFERENCES CLIENT(Client_id)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (Sub_policies_id_ref) REFERENCES SUB_POLICIES (Sub_policies_id)
+	ON DELETE CASCADE ON UPDATE CASCADE,  
+    FOREIGN KEY (Hinfo_id_ref) REFERENCES Health_info (Hinfo_id)
+	ON DELETE CASCADE ON UPDATE CASCADE
+    );
+
+
+CREATE TABLE Property_info (
+    Pinfo_id SMALLINT PRIMARY KEY,
+    Property_value DECIMAL(11,2),
+    Construction_cost DECIMAL(11,2),
+    Area DECIMAL(5,3),
+    Location VARCHAR(30),
+    Property_age INT,
+    Title_deed VARCHAR(10),
+    Sub_policies_id_ref SMALLINT,
+    Client_id_ref SMALLINT,
+    FOREIGN KEY (Client_id_ref) REFERENCES CLIENT(Client_id)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (Sub_policies_id_ref) REFERENCES SUB_POLICIES (Sub_policies_id)
+	ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+
+CREATE TABLE Property_claim_policies (
+    Pclaim_id SMALLINT PRIMARY KEY,
+    Fire_brigade_report VARCHAR(10),
+    Invoice_of_artical DECIMAL(9,2),
+    Date_of_claim DATE,
+    FIR VARCHAR(10),
+    Pro_info_id_ref SMALLINT,
+    Client_id_ref SMALLINT,
+    Sub_policies_id_ref SMALLINT,
+    FOREIGN KEY (Pro_info_id_ref) REFERENCES Property_info (Pinfo_id)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (Client_id_ref) REFERENCES CLIENT (Client_id)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (Sub_policies_id_ref) REFERENCES SUB_POLICIES (Sub_policies_id)
+	ON DELETE CASCADE ON UPDATE CASCADE
+    );
+
